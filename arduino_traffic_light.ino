@@ -1,4 +1,13 @@
-bool state = 0;
+int state = 0;   //0: red, 1: green, 2:green_blinking
+uint32_t duration[] = {10000,5000,5000};
+uint32_t next_state_time = 0;
+
+//for blinking
+bool green_flag = 0;
+uint32_t green_next_blink = 0;
+
+#define RED_LIGHT 7
+#define GREEN_LIGHT 8
 
 bool pkg_start = false;
 int curr_len = 0;
@@ -6,7 +15,7 @@ int total_len = 0;
 byte buf[100];
 bool blinking = false;
 bool flag = false;
-int next_blink = 0;
+uint32_t next_blink = 0;
 bool init_auto_detect = false;
 
 void setup() {
@@ -14,6 +23,8 @@ void setup() {
   pinMode(0,INPUT);
   pinMode(1,OUTPUT);
   pinMode(LED_BUILTIN,OUTPUT);
+  pinMode(RED_LIGHT, OUTPUT);
+  pinMode(GREEN_LIGHT, OUTPUT);
   Serial.begin(9600);
 }
 
@@ -42,8 +53,7 @@ void SendAutoDetect(){
   Serial.write(0x02);
 }
 
-void loop() {  
-  //if(Serial.available())digitalWrite(LED_BUILTIN,HIGH);
+void HandleSerial(){
   while(Serial.available()){
     byte ch = Serial.read();
 //    blinking = true;
@@ -74,10 +84,47 @@ void loop() {
       Serial.print("destroy\n");
     }
   }
-  if(millis()>next_blink && blinking){
+}
+
+void TrafficLight(){
+  switch(state){
+    case 0:
+    digitalWrite(RED_LIGHT,HIGH);
+    digitalWrite(GREEN_LIGHT,LOW);
+    break;
+    case 1:
+    digitalWrite(RED_LIGHT,LOW);
+    digitalWrite(GREEN_LIGHT,HIGH);
+    break;
+    case 2:
+    digitalWrite(RED_LIGHT,LOW);
+    if(millis()>green_next_blink){
+      digitalWrite(GREEN_LIGHT,green_flag = !green_flag);
+      green_next_blink = millis()+250;
+    }
+    break;
+    default:
+    digitalWrite(RED_LIGHT,LOW);
+    digitalWrite(GREEN_LIGHT,LOW);
+  }
+
+  if(millis()>next_state_time){
+    state++;
+    state%=3;
+    next_state_time = millis()+duration[state];
+    Serial.println(state);
+  }
+}
+
+void loop() {  
+  //if(Serial.available())digitalWrite(LED_BUILTIN,HIGH);
+//  HandleSerial();
+  if(millis()>next_blink){
     digitalWrite(LED_BUILTIN,flag = !flag);
     next_blink = millis()+250;
+    Serial.println(next_state_time);
   }
-  if(!init_auto_detect)SendAutoDetect();
+//  if(!init_auto_detect)SendAutoDetect();
 //  SendRead(4);
+  TrafficLight();
 }
