@@ -1,13 +1,16 @@
-int state = 0;   //0: red, 1: green, 2:green_blinking
-uint32_t duration[] = {10000,5000,5000};
+int state = 0;   //0: R|G, 1: R|Y, 2:R|R, 3: G|R, 4: GB|R, 5: R|R, 6: R|RY
+uint32_t duration[] = {10000,1000,500,5000,5000,500,1000};
 uint32_t next_state_time = 0;
 
 //for blinking
 bool green_flag = 0;
 uint32_t green_next_blink = 0;
 
-#define RED_LIGHT 7
-#define GREEN_LIGHT 8
+#define P_RED 7
+#define P_GREEN 8
+#define T_RED 13
+#define T_YELLOW 12
+#define T_GREEN 11
 
 bool pkg_start = false;
 int curr_len = 0;
@@ -23,8 +26,11 @@ void setup() {
   pinMode(0,INPUT);
   pinMode(1,OUTPUT);
   pinMode(LED_BUILTIN,OUTPUT);
-  pinMode(RED_LIGHT, OUTPUT);
-  pinMode(GREEN_LIGHT, OUTPUT);
+  pinMode(P_RED, OUTPUT);
+  pinMode(P_GREEN, OUTPUT);
+  pinMode(T_RED,OUTPUT);
+  pinMode(T_YELLOW,OUTPUT);
+  pinMode(T_GREEN,OUTPUT);
   Serial.begin(9600);
 }
 
@@ -86,31 +92,55 @@ void HandleSerial(){
   }
 }
 
+void SetLight(bool pr, bool pg, bool tr, bool ty, bool tg){
+    digitalWrite(P_RED,pr);
+    digitalWrite(P_GREEN,pg);
+    digitalWrite(T_RED,tr);
+    digitalWrite(T_YELLOW,ty);
+    digitalWrite(T_GREEN,tg);
+}
+
 void TrafficLight(){
   switch(state){
     case 0:
-    digitalWrite(RED_LIGHT,HIGH);
-    digitalWrite(GREEN_LIGHT,LOW);
+    SetLight(1,0,0,0,1);
     break;
+    
     case 1:
-    digitalWrite(RED_LIGHT,LOW);
-    digitalWrite(GREEN_LIGHT,HIGH);
+    SetLight(1,0,0,1,0);
     break;
+    
     case 2:
-    digitalWrite(RED_LIGHT,LOW);
+    SetLight(1,0,1,0,0);
+    break;
+    
+    case 3:
+    SetLight(0,1,1,0,0);
+    break;
+    
+    case 4:
     if(millis()>green_next_blink){
-      digitalWrite(GREEN_LIGHT,green_flag = !green_flag);
+      green_flag = !green_flag;
       green_next_blink = millis()+250;
     }
+    SetLight(0,green_flag,1,0,0);
     break;
+    
+    case 5:
+    SetLight(1,0,1,0,0);
+    break;
+    
+    case 6:
+    SetLight(1,0,1,1,0);
+    break;
+    
     default:
-    digitalWrite(RED_LIGHT,LOW);
-    digitalWrite(GREEN_LIGHT,LOW);
+    SetLight(0,0,0,0,0);
   }
 
   if(millis()>next_state_time){
     state++;
-    state%=3;
+    state%=7;
     next_state_time = millis()+duration[state];
     Serial.println(state);
   }
