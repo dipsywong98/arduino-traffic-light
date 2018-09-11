@@ -210,9 +210,9 @@ void loop() {
 //    ps0->ShowDigit(num);
 //    ps1->ShowDigit(num);
   }
-//  if (!init_auto_detect) {
-//    SendAutoDetect();
-//    Serial.println("send auto detect");
-//  }
+  if (!init_auto_detect) {
+    SendAutoDetect();
+    Serial.println("send auto detect");
+  }
   TrafficLight();
 }
