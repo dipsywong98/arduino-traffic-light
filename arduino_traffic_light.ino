@@ -1,10 +1,10 @@
 #include "sevseg.h"
 int state = 0;
-#define PEDESTRIAN_RED_DURATION 7000
-#define PEDESTRIAN_NORMAL_GREEN_DURATION 5000
-#define PEDESTRIAN_BLINK_GREEN_DURATION 4000
-#define PEDESTRIAN_TOTAL_GREEN_DURATION (PEDESTRIAN_NORMAL_GREEN_DURATION + PEDESTRIAN_BLINK_GREEN_DURATION)
-#define NFC_ELONGATE_GREEN_DURATION 3000
+#define PEDESTRIAN_RED_DURATION 5000
+#define PEDESTRIAN_NORMAL_GREEN_DURATION 3000
+#define PEDESTRIAN_BLINK_GREEN_DURATION 2000
+#define PEDESTRIAN_TOTAL_GREEN_DURATI,ON (PEDESTRIAN_NORMAL_GREEN_DURATION + PEDESTRIAN_BLINK_GREEN_DURATION)
+#define NFC_ELONGATE_GREEN_DURATION 2000
 #define TRAFFIC_GREEN_MIN_TIME 0    //haven't implement
 
 //0: R|G, 1: R|Y, 2:R|R, 3: G|R, 4: GB|R, 5: R|R, 6: R|RY
@@ -160,7 +160,7 @@ void TrafficLight() {
     //3: pedestrian normal green
     case 3:
       SetLight(0, 1, 1, 0, 0);
-      ShowNum((next_state_time - millis() + duration[4])/1000);
+      ShowNum((next_state_time - millis() + duration[4] + 999)/1000);
       break;
 
     //4: pedestrian blink green
@@ -170,7 +170,7 @@ void TrafficLight() {
         green_next_blink = millis() + 250;
       }
       SetLight(0, green_flag, 1, 0, 0);
-      ShowNum((next_state_time - millis())/1000);
+      ShowNum((next_state_time - millis() + 999)/1000);
       break;
 
     //5: both red
